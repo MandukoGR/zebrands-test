@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Product
 
-
+""" Product creation test case. """
 class ProductCreationTestCase(APITestCase):
     def setUp(self):
         """Set up the test case with a user and access token."""
@@ -97,3 +97,46 @@ class ProductCreationTestCase(APITestCase):
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(Product.objects.count(), 0)
+
+""" Product list test case. """
+class ProductListTestCase(APITestCase):
+    def setUp(self):
+        """Create 10 products for testing."""
+        Product.objects.create(name='Product 1', price=100.00, brand='Brand A')
+        Product.objects.create(name='Product 2', price=150.00, brand='Brand B')
+        Product.objects.create(name='Product 3', price=200.00, brand='Brand C')
+        Product.objects.create(name='Product 4', price=250.00, brand='Brand D')
+        Product.objects.create(name='Product 5', price=300.00, brand='Brand E')
+        Product.objects.create(name='Product 6', price=350.00, brand='Brand F')
+        Product.objects.create(name='Product 7', price=400.00, brand='Brand G')
+        Product.objects.create(name='Product 8', price=450.00, brand='Brand H')
+        Product.objects.create(name='Product 9', price=500.00, brand='Brand I')
+        Product.objects.create(name='Product 10', price=550.00, brand='Brand J')
+
+    def test_list_products(self):
+        """Test listing all products."""
+        url = reverse('list_products')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 10)
+    
+    def test_pagination(self):
+        """Test pagination of products."""
+        url = reverse('list_products') + '?page_size=5'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 5)
+    
+    def test_invalid_parameters(self):
+        """Test invalid page number parameter."""
+        url = reverse('list_products') + '?page=abc'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_list_product_empty(self):
+        """Test listing products when there are no products."""
+        Product.objects.all().delete()
+        url = reverse('list_products')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 0)
