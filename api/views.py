@@ -171,8 +171,19 @@ def update_product(request, sku):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_product(request, sku):
+    """
+    Delete a product by SKU.
+    """
+    try:
+        product = Product.objects.get(sku=sku)
+        product.delete()
+        return Response({"message": "Product deleted successfully"}, status=status.HTTP_200_OK)
+    except Product.DoesNotExist:
+        return Response({"detail": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(["GET"])
 def list_products(request):
