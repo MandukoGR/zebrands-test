@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .serializers import UserSerializer
+from .serializers import ProductSerializer, UserSerializer
 
 
 @api_view(["POST"])
@@ -75,7 +75,6 @@ def test_token(request):
     return Response("You are authenticated {}".format(request.user.email), status=status.HTTP_200_OK)
 
 
-# Refresh token view
 @api_view(["POST"])
 def refresh_token(request):
     """
@@ -95,3 +94,22 @@ def refresh_token(request):
     
     except Exception as e:
         return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def create_product(request):
+    """
+    Create a new product.
+    """
+    serializer = ProductSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        product = serializer.save()
+        return Response({
+            "message": "Product created successfully",
+            "product": serializer.data
+        }, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
