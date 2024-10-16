@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import datetime
 from pathlib import Path
 import os
 from environ import Env
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
+    "rest_framework_simplejwt"
 ]
 
 MIDDLEWARE = [
@@ -132,3 +134,9 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=5),  # Example: 5 minutes
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),    # Example: 1 day
+    # ... other settings ...
+}

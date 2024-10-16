@@ -166,3 +166,4 @@ cython_debug/
 
 venv/
 .env
+test.rest
