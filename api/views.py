@@ -117,6 +117,24 @@ def create_product(request):
 
 
 @api_view(["GET"])
+def product_detail(request, sku):
+    """
+    Retrieve a product by SKU.
+    """
+    try:
+        product = get_object_or_404(Product, sku=sku)
+
+        # Increment the views count only if user is not authenticated
+        if not request.user.is_authenticated:
+            product.views += 1
+            product.save()
+
+        serializer = ProductSerializer(product)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except:
+        return Response({"detail": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(["GET"])
 def list_products(request):
     """
     List all products paginated.
@@ -129,4 +147,6 @@ def list_products(request):
         return paginator.get_paginated_response(serializer.data)
     except:
         return Response({"detail": "Incorrect query parameters" }, status=status.HTTP_400_BAD_REQUEST)
+
+
 

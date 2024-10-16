@@ -140,3 +140,48 @@ class ProductListTestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 0)
+
+""" Product detail test case. """
+class ProductDetailTestCase(APITestCase):
+    def setUp(self):
+        self.product = Product.objects.create(
+            sku="e4c0ce55-9a2b-44a7-b983-e1c875235134",
+            name="Test Product",
+            price=100.00,
+            brand="Test Brand",
+            views=0
+        )
+
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+
+    def authenticate(self):
+        """Authenticate the test client with the user's access token."""
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+
+    def test_get_product_details_authenticated_user(self):
+        """
+        Test accessing product details as an authenticated user
+        should not increment views.
+        """
+        self.authenticate()
+        url = reverse('product_detail', args=[self.product.sku])
+        response = self.client.get(url)
+
+        self.product.refresh_from_db()  
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.product.views, 0)
+
+    def test_get_product_details_unauthenticated_user(self):
+        """
+        Test accessing product details as an unauthenticated user
+        should increment views.
+        """
+        url = reverse('product_detail', args=[self.product.sku])
+        response = self.client.get(url)
+
+        self.product.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.product.views, 1)
