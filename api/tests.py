@@ -266,4 +266,58 @@ class ProductUpdateTestCase(APITestCase):
         }
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+class ProductDeleteTestCase(APITestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(
+            username='admin',
+            password='password'
+        )
+        self.product = Product.objects.create(
+            sku='023b8c6b-afa8-4b27-8522-b9f866adb458',
+            name='Test Product',
+            price=100.0,
+            brand='Test Brand'
+        )
+        refresh = RefreshToken.for_user(self.admin_user)
+        self.access_token = str(refresh.access_token)
+
+
+    def authenticate(self):
+        """Authenticate the test client with the user's access token."""
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+    
+    def test_delete_product_success(self):
+        """
+        Test that an admin can delete a product successfully.
+        """
+        url = reverse('delete_product', kwargs={'sku': self.product.sku})
+        self.authenticate()
         
+        response = self.client.delete(url, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK) 
+        self.assertFalse(Product.objects.filter(sku=self.product.sku).exists()) 
+
+    def test_delete_product_unauthenticated(self):
+        """
+        Test that an unauthenticated user cannot delete a product.
+        """
+        url = reverse('delete_product', kwargs={'sku': self.product.sku})
+        
+        response = self.client.delete(url, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertTrue(Product.objects.filter(sku=self.product.sku).exists())
+
+    def test_delete_product_not_found(self):
+        """
+        Test that a product that does not exist cannot be deleted.
+        """
+        url = reverse('delete_product', kwargs={'sku': 'e4c0ce55-9a2b-44a7-b983-e1c875235134'})
+        self.authenticate()
+        
+        response = self.client.delete(url, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(Product.objects.filter(sku=self.product.sku).exists())
