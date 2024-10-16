@@ -11,6 +11,7 @@ urlpatterns = [
     re_path('refresh_token', views.refresh_token, name='refresh_token'),
     re_path('newproduct', views.create_product, name='create_product'),
     re_path('newadmin', views.create_admin_users, name='create_admin_users'),
+    re_path('admins', views.list_admin_users, name='list_admin_users'),
   
 ]
 

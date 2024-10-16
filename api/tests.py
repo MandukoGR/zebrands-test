@@ -423,3 +423,41 @@ class CreateAdminUsersTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(User.objects.filter(username='newadmin').exists())
 
+class AdminListTestCase(APITestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(
+            username='admin',
+            password='password',
+            email='admin@example.com',
+            first_name='Admin',
+            last_name='User'
+        )
+        self.user = User.objects.create_user(username='admin1', password='adminpass1', email='admin1@example.com', first_name='Admin', last_name='User')
+        self.user2 = User.objects.create_user(username='admin2', password='adminpass2', email='admin2@example.com', first_name='Admin', last_name='User')
+        refresh = RefreshToken.for_user(self.admin_user)
+        self.access_token = str(refresh.access_token)
+
+    def authenticate(self):
+        """Authenticate the test client with the user's access token."""
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        
+    def test_list_admin_users(self):
+        """Test listing all admin users."""
+        self.authenticate()
+        url = reverse('list_admin_users')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['username'], 'admin')
+        self.assertEqual(response.data[1]['username'], 'admin1')
+        self.assertEqual(response.data[2]['username'], 'admin2')
+
+    def test_list_admin_users_unauthenticated(self):
+        """Test listing admin users by an unauthenticated user."""
+        url = reverse('list_admin_users')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data['detail'], 'Authentication credentials were not provided.')
+
+
