@@ -28,6 +28,11 @@ class UserSerializer(serializers.ModelSerializer):
             last_name=validated_data.get("last_name", "")
         )
         return user
+    
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email is already in use.")
+        return value
 
 
 class ProductSerializer(serializers.ModelSerializer):

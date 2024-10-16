@@ -207,6 +207,15 @@ def create_admin_users(request):
     """
     Create admin users.
     """
+    username = request.data.get("username")
+    password = request.data.get("password")
+    email = request.data.get("email")
+    first_name = request.data.get("first_name")
+    last_name = request.data.get("last_name")
+
+    if not username or not password or not email or not first_name or not last_name:
+        return Response({"detail": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+    
     serializer = UserSerializer(data=request.data)
     
     if serializer.is_valid():
