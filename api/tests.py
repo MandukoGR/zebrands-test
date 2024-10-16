@@ -321,3 +321,5 @@ class ProductDeleteTestCase(APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue(Product.objects.filter(sku=self.product.sku).exists())
+
+    

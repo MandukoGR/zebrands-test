@@ -200,4 +200,24 @@ def list_products(request):
         return Response({"detail": "Incorrect query parameters" }, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def create_admin_users(request):
+    """
+    Create admin users.
+    """
+    serializer = UserSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        user = serializer.save()
+        user.is_staff = True
+        user.save()
+        return Response({
+            "message": "Admin user created successfully",
+            "user": serializer.data
+        }, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
