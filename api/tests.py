@@ -185,3 +185,85 @@ class ProductDetailTestCase(APITestCase):
         self.product.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.product.views, 1)
+
+
+""" Product update test case. """
+class ProductUpdateTestCase(APITestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(
+            username='admin',
+            password='password'
+        )
+        self.product = Product.objects.create(
+            name='Test Product',
+            price=100.0,
+            brand='Test Brand'
+        )
+        refresh = RefreshToken.for_user(self.admin_user)
+        self.access_token = str(refresh.access_token)
+
+
+    def authenticate(self):
+        """Authenticate the test client with the user's access token."""
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+    
+    def test_update_product(self):
+        """Test updating a product."""
+        self.authenticate()
+        url = reverse('update_product', args=[self.product.sku])
+        data = {
+            "name": "Updated Product",
+            "price": 200.0,
+            "brand": "Updated Brand"
+        }
+        response = self.client.put(url, data, format='json')
+        self.product.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.product.name, 'Updated Product')
+        self.assertEqual(self.product.price, Decimal('200.0').quantize(Decimal('0.01')))
+        self.assertEqual(self.product.brand, 'Updated Brand')
+
+    def test_update_product_invalid_data(self):
+        """Test updating a product with invalid data."""
+        self.authenticate()
+        url = reverse('update_product', args=[self.product.sku])
+        data = {
+            "name": "Updated Product",
+            "price": "invalid",
+            "brand": "Updated Brand"
+        }
+        response = self.client.put(url, data, format='json')
+        self.product.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(self.product.name, 'Test Product')
+        self.assertEqual(self.product.price, Decimal('100.0').quantize(Decimal('0.01')))
+        self.assertEqual(self.product.brand, 'Test Brand')
+
+    def test_update_product_unauthenticated_user(self):
+        """Test updating a product by an unauthenticated user."""
+        url = reverse('update_product', args=[self.product.sku])
+        data = {
+            "name": "Updated Product",
+            "price": 200.0,
+            "brand": "Updated Brand"
+        }
+        response = self.client.put(url, data, format='json')
+        self.product.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(self.product.name, 'Test Product')
+        self.assertEqual(self.product.price, Decimal('100.0').quantize(Decimal('0.01')))
+        self.assertEqual(self.product.brand, 'Test Brand')
+    
+    def test_update_product_not_found(self):
+        """Test updating a product that does not exist."""
+        self.authenticate()
+        url = reverse('update_product', args=['023b8c6b-afa8-4b27-8522-b9f866adb458'])
+        data = {
+            "name": "Updated Product",
+            "price": 200.0,
+            "brand": "Updated Brand"
+        }
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        

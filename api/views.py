@@ -11,6 +11,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .serializers import ProductSerializer, UserSerializer
 import re
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 @api_view(["POST"])
@@ -133,6 +135,44 @@ def product_detail(request, sku):
         return Response(serializer.data, status=status.HTTP_200_OK)
     except:
         return Response({"detail": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(["PUT"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def update_product(request, sku):
+    """
+    Update a product by SKU.
+    """
+    try:
+        product = Product.objects.get(sku=sku)
+    except Product.DoesNotExist:
+        return Response({"detail": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ProductSerializer(product, data=request.data, partial=True)
+    
+    if serializer.is_valid():
+        serializer.save()
+        
+        users = User.objects.all()
+        recipient_list = [user.email for user in users if user.email]
+
+        send_mail(
+            subject="Product Updated",
+            message=f"The product {product.name} has been updated. New details: {serializer.data}",
+            from_email=settings.DEFAULT_FROM_EMAIL,  
+            recipient_list=recipient_list,
+            fail_silently=False,
+        )
+
+        return Response({
+            "message": "Product updated successfully",
+            "product": serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 @api_view(["GET"])
 def list_products(request):
