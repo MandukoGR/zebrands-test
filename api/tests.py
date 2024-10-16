@@ -11,7 +11,7 @@ class ProductCreationTestCase(APITestCase):
     def setUp(self):
         """Set up the test case with a user and access token."""
         self.user = User.objects.create_user(
-            username='admin', password='admin', email="admin@test.com")
+            username='admin', password='admin', email="admin@test.com", first_name='Admin', last_name='User')
 
         refresh = RefreshToken.for_user(self.user)
         self.access_token = str(refresh.access_token)
@@ -152,7 +152,7 @@ class ProductDetailTestCase(APITestCase):
             views=0
         )
 
-        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.user = User.objects.create_user(username='testuser', password='testpass', email='testuser@test.com', first_name='Test', last_name='User')
         refresh = RefreshToken.for_user(self.user)
         self.access_token = str(refresh.access_token)
 
@@ -192,7 +192,10 @@ class ProductUpdateTestCase(APITestCase):
     def setUp(self):
         self.admin_user = User.objects.create_user(
             username='admin',
-            password='password'
+            password='password',
+            email='admin@test.com',
+            first_name='Admin',
+            last_name='User'
         )
         self.product = Product.objects.create(
             name='Test Product',
@@ -266,11 +269,15 @@ class ProductUpdateTestCase(APITestCase):
         }
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 class ProductDeleteTestCase(APITestCase):
     def setUp(self):
         self.admin_user = User.objects.create_user(
             username='admin',
-            password='password'
+            password='password',
+            email='admin@test.com',
+            first_name='Admin',
+            last_name='User'
         )
         self.product = Product.objects.create(
             sku='023b8c6b-afa8-4b27-8522-b9f866adb458',
@@ -321,3 +328,98 @@ class ProductDeleteTestCase(APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue(Product.objects.filter(sku=self.product.sku).exists())
+
+    
+class CreateAdminUsersTestCase(APITestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(
+            username='admin',
+            password='password',
+            email='admin@example.com',
+            first_name='Admin',
+            last_name='User'
+        )
+        refresh = RefreshToken.for_user(self.admin_user)
+        self.access_token = str(refresh.access_token)
+
+    def authenticate(self):
+        """Authenticate the test client with the user's access token."""
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+    
+    def test_create_admin_users(self):
+        """Test creating an admin user."""
+        self.authenticate()
+        url = reverse('create_admin_users')
+        data = {
+            "username": "newadmin",
+            "password": "password",
+            "email": "new_admin@example.com",
+            "first_name": "New",
+            "last_name": "Admin"
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(username='newadmin').exists())
+
+    def test_create_admin_users_unauthenticated(self):
+        """Test creating an admin user by an unauthenticated user."""
+        url = reverse('create_admin_users')
+        data = {
+            "username": "newadmin",
+            "password": "password",
+            "email": "new_admin@example.com",
+            "first_name": "New",
+            "last_name": "Admin"
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertFalse(User.objects.filter(username='newadmin').exists())
+
+    def test_create_admin_invalid_data(self):
+        """Test creating an admin user with invalid data."""
+        self.authenticate()
+        url = reverse('create_admin_users')
+        data = {
+            "username": "",
+            "password": "password",
+            "email": "new_admin@example.com",
+            "first_name": "New",
+            "last_name": "Admin"
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(User.objects.filter(username='newadmin').exists())
+
+    def test_create_admin_duplicate_username(self):
+        """Test creating an admin user with a duplicate username."""
+        self.authenticate()
+        url = reverse('create_admin_users')
+        data = {
+            "username": "admin",
+            "password": "password",
+            "email": "new_admin@example.com",
+            "first_name": "New",
+            "last_name": "Admin"
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(User.objects.filter(
+            username='newadmin').exists())
+        self.assertTrue(User.objects.filter(username='admin').exists())
+
+    def test_create_admin_duplicate_email(self):
+        """Test creating an admin user with a duplicate email."""
+        self.authenticate()
+        url = reverse('create_admin_users')
+        data = {
+            "username": "newadmin",
+            "password": "password",
+            "email": "admin@example.com",
+            "first_name": "New",
+            "last_name": "Admin"
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(User.objects.filter(username='newadmin').exists())
+
