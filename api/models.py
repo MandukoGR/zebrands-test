@@ -1,5 +1,6 @@
 from django.db import models
 import uuid
+from rest_framework.pagination import PageNumberPagination
 
 
 class Product(models.Model):
@@ -21,7 +22,7 @@ class Product(models.Model):
         if self.views < 0:
             self.views = 0
 
-        # If not sku is provided, generate a new one
+        # If no SKU is provided, generate a new one
         if self.sku is None:
             self.sku = uuid.uuid4()
 
@@ -29,3 +30,12 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ProductPagination(PageNumberPagination):
+    """
+    Pagination class for Product model.
+    """
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
