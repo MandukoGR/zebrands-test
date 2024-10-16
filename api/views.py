@@ -69,7 +69,6 @@ def signup(request):
 
 
 @api_view(["GET"])
-@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def test_token(request):
     """
@@ -100,7 +99,6 @@ def refresh_token(request):
     
 
 @api_view(["POST"])
-@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def create_product(request):
     """
@@ -137,7 +135,6 @@ def product_detail(request, sku):
         return Response({"detail": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(["PUT"])
-@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def update_product(request, sku):
     """
@@ -172,7 +169,6 @@ def update_product(request, sku):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["DELETE"])
-@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_product(request, sku):
     """
@@ -201,7 +197,6 @@ def list_products(request):
 
 
 @api_view(["POST"])
-@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def create_admin_users(request):
     """
@@ -229,4 +224,13 @@ def create_admin_users(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_admin_users(request):
+    """
+    List all admin users.
+    """
+    users = User.objects.all().values("id", "username", "password", "email", "first_name", "last_name")
+    serializer = UserSerializer(users, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
