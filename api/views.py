@@ -256,3 +256,15 @@ def update_admin_user(request, id):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_admin_user(request, id):
+    """
+    Delete an admin user by ID.
+    """
+    try:
+        user = User.objects.get(id=id)
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
