@@ -21,7 +21,7 @@ from environ import Env
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = Env()
-env.read_env(os.path.join(BASE_DIR.parent, '.env'))
+env.read_env()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -32,8 +32,7 @@ SECRET_KEY = "django-insecure-lcy(_5$4j7n!^$6@*2%$tdpmzcibvp&n4a5q=365ykba_edgm6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['18.117.167.231"', 'localhost', '127.0.0.1']
 
 # Application definition
 
