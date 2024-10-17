@@ -238,6 +238,10 @@ def delete_product(request, sku):
 
 @swagger_auto_schema(
     method='get',
+    manual_parameters=[
+        openapi.Parameter('page', openapi.IN_QUERY, description="Page number", type=openapi.TYPE_INTEGER),
+        openapi.Parameter('page_size', openapi.IN_QUERY, description="Number of items per page", type=openapi.TYPE_INTEGER)
+    ],
     responses={200: ProductSerializer(many=True), 400: 'Incorrect query parameters'}
 )
 @api_view(["GET"])
