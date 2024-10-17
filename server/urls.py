@@ -13,6 +13,7 @@ urlpatterns = [
     re_path('newadmin', views.create_admin_users, name='create_admin_users'),
     re_path('admins', views.list_admin_users, name='list_admin_users'),
     re_path('updateadmin/(?P<id>[^/]+)', views.update_admin_user, name='update_admin_user'),
+    re_path('deleteadmin/(?P<id>[^/]+)', views.delete_admin_user, name='delete_admin_user'),
   
 ]
 
