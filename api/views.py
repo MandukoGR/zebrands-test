@@ -234,3 +234,25 @@ def list_admin_users(request):
     serializer = UserSerializer(users, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def update_admin_user(request, id):
+    """
+    Update an admin user by ID.
+    """
+    try:
+        user = User.objects.get(id=id)
+    except User.DoesNotExist:
+        return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = UserSerializer(user, data=request.data, partial=True)
+    
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            "message": "User updated successfully",
+            "user": serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
