@@ -12,7 +12,7 @@
     - [Advantages of This Architecture:](#advantages-of-this-architecture)
 ## How to Test the API
 
-To test the API on the deployed page, follow these steps:
+To test the API on the deployed page go to http://18.117.155.123/swagger/ and follow these steps:
 
 1. **Authentication**: 
    - You need to authenticate using the `/login` endpoint, which will return an `access_token` and a `refresh_token`.
