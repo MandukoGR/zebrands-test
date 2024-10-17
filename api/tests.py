@@ -461,3 +461,66 @@ class AdminListTestCase(APITestCase):
         self.assertEqual(response.data['detail'], 'Authentication credentials were not provided.')
 
 
+
+class UpdateAdminUserTestCase(APITestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(
+            username='admin',
+            password='password',
+            email='admin@example.com',
+            first_name='Admin',
+            last_name='User'
+        )
+        refresh = RefreshToken.for_user(self.admin_user)
+        self.access_token = str(refresh.access_token)
+
+    def authenticate(self):
+        """Authenticate the test client with the user's access token."""
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        
+    def test_update_admin_info(self):
+        """Test updating admin user information."""
+        self.authenticate()
+        update_data = {
+            'username': 'newadmin1',
+            'email': 'newadmin1@example.com'
+        }
+        url = reverse('update_admin_user', args=[self.admin_user.id])
+        response = self.client.put(url, update_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['user']['username'], 'newadmin1')
+        self.assertEqual(response.data['user']['email'], 'newadmin1@example.com')
+
+    def test_duplicate_username(self):
+        """Test updating admin user with a duplicate username."""
+        self.authenticate()
+        User.objects.create_user(username='admin2', password='adminpass2', email='admin2@example.com')
+
+        update_data = {
+            'username': 'admin2',
+        }
+        url = reverse('update_admin_user', args=[self.admin_user.id])
+        response = self.client.put(url, update_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_duplicate_email(self):
+        """Test updating admin user with a duplicate email."""
+        self.authenticate()
+        User.objects.create_user(username='admin3', password='adminpass3', email='admin3@example.com')
+        update_data = {
+            'email': 'admin3@example.com',
+        }
+        url = reverse('update_admin_user', args=[self.admin_user.id])
+        response = self.client.put(url, update_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_unauthenticated_user(self):
+        """Test updating admin user by an unauthenticated user."""
+        update_data = {
+            'username': 'newadmin1',
+            'email': 'example@example.com',
+        }
+        url = reverse('update_admin_user', args=[self.admin_user.id])
+        response = self.client.put(url, update_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
