@@ -14,7 +14,25 @@ class UserSerializer(serializers.ModelSerializer):
         Meta class to specify the model and fields to be used in the serializer.
         """
         model = User
-        fields = ["id", "username", "password", "email"]
+        fields = ["id", "username", "password", "email", "first_name", "last_name"]
+
+    def create(self, validated_data):
+        """
+        Create a new user instance.
+        """
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
+            first_name=validated_data.get("first_name", ""),
+            last_name=validated_data.get("last_name", "")
+        )
+        return user
+    
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email is already in use.")
+        return value
 
 
 class ProductSerializer(serializers.ModelSerializer):
