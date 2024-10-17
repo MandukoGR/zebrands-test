@@ -1,5 +1,26 @@
 # Software Requirements Specifications
-
+# Table of Contents
+- [Software Requirements Specifications](#software-requirements-specifications)
+- [Table of Contents](#table-of-contents)
+  - [Objective](#objective)
+  - [Scope](#scope)
+  - [Functional Requirements](#functional-requirements)
+    - [Product management](#product-management)
+    - [User Management](#user-management)
+    - [Notification system](#notification-system)
+    - [Product View Tracking](#product-view-tracking)
+  - [Architecture](#architecture)
+    - [1. Django Application (within Docker Container on EC2)](#1-django-application-within-docker-container-on-ec2)
+    - [2. PostgreSQL Database (AWS RDS)](#2-postgresql-database-aws-rds)
+    - [3. Amazon EC2 (for Hosting)](#3-amazon-ec2-for-hosting)
+    - [4. Gmail SMTP (for Email Services)](#4-gmail-smtp-for-email-services)
+    - [5. HTTPS and TCP Protocols](#5-https-and-tcp-protocols)
+  - [Non-Functional Requirements](#non-functional-requirements)
+    - [1. Maintainability](#1-maintainability)
+      - [2. Scalability](#2-scalability)
+      - [3. Security](#3-security)
+      - [4. Portability](#4-portability)
+      - [5. Compatibility](#5-compatibility)
 ## Objective
 Design and implement a robust and scalable catalog management system with a RESTful API that enables efficient product management, secure user access control, and real-time notifications for product updates, while also tracking product views for future analytics.
 
@@ -36,7 +57,7 @@ This project encompasses the following features and functionalities for a catalo
 
 *   **Real-time Notifications:**
     *   The system will send real-time notifications to all administrators when another administrator makes changes to a product.
-    *   Notification delivery mechanism (e.g., email, in-app notifications) will be determined during implementation.
+  
 
 **4. Product View Tracking**
 
@@ -128,41 +149,42 @@ This project encompasses the following features and functionalities for a catalo
     - The system should make this data accessible for reporting purposes.
 
 ## Architecture
-![Architecture](misc/architecture.png)
 
-### 1. Django Application (within Docker Container)
+### 1. Django Application (within Docker Container on EC2)
+- **Technology Choice**: Django is a robust and mature Python web framework well-suited for building RESTful APIs. Its built-in features for handling HTTP requests, data modeling, and user management align perfectly with the project's needs.
 
-*   **Technology Choice:** Django is a robust and mature Python web framework well-suited for building RESTful APIs. Its built-in features for handling HTTP requests, data modeling, and user management align perfectly with the project's needs.
-*   **Containerization (Docker):** Containerizing the Django application with Docker offers several advantages:
-    *   **Consistency:** Ensures the application runs the same way across different environments (development, testing, production).
-    *   **Portability:**  Makes it easy to deploy the application on various platforms and cloud providers.
-    *   **Isolation:** Isolates the application and its dependencies from the host system, preventing conflicts and improving security.
-    *   **Efficiency:** Docker images are typically lightweight and efficient, optimizing resource utilization.
-*   **API Framework:** Django REST framework (DRF) will be used to build the API. DRF simplifies API development by providing features like serialization, authentication, and API documentation.
+- **Containerization (Docker)**: The Django application is containerized within Docker and deployed on an Amazon EC2 instance. This setup offers several advantages:
+  - **Consistency**: Ensures the application runs the same way across different environments (development, testing, production).
+  - **Portability**: Makes it easy to deploy the application on various platforms and cloud providers.
+  - **Isolation**: Isolates the application and its dependencies from the host system, preventing conflicts and improving security.
+  - **Efficiency**: Docker images are typically lightweight and efficient, optimizing resource utilization.
+
+- **EC2 Instance**: The Docker container runs on an Amazon EC2 instance, which provides flexible computing capacity. EC2 ensures the system can scale by adjusting instance size or adding more instances as needed.
+
+- **API Framework**: Django REST framework (DRF) is used to build the API. DRF simplifies API development by providing features like serialization, authentication, and API documentation.
 
 ### 2. PostgreSQL Database (AWS RDS)
+- **Data Persistence**: PostgreSQL is a powerful and reliable open-source relational database. It is well-suited for storing structured data like product information, user details, and view counts.
+  
+- **Scalability and Availability**: Hosting the database on AWS RDS (Relational Database Service) provides scalability and high availability. RDS handles essential database management tasks, including backups, software patching, and scaling, allowing you to focus on application development.
 
-*   **Data Persistence:** PostgreSQL is a powerful and reliable open-source relational database. It's well-suited for storing structured data like product information, user details, and view counts.
-*   **Scalability and Availability:** Hosting the database on AWS RDS (Relational Database Service) provides scalability and high availability. RDS handles database management tasks, including backups, software patching, and scaling, allowing you to focus on application development.
+### 3. Amazon EC2 (for Hosting)
+- **Cloud Deployment**: Amazon EC2 is used to host the application. EC2 provides flexibility, allowing you to easily scale resources by increasing instance sizes or adding more instances based on demand.
+  
+- **Scalability and Load Balancing**: EC2 can be scaled by adding or upgrading instances manually. Load balancers can also be configured to distribute traffic evenly across instances, improving performance during high traffic periods.
 
-### 3. AWS Elastic Beanstalk
+- **Integration with AWS Ecosystem**: EC2 integrates well with other AWS services like RDS and IAM, allowing you to leverage the full power of the AWS cloud.
 
-*   **Cloud Deployment:** AWS Elastic Beanstalk is a Platform-as-a-Service (PaaS) offering that simplifies deploying and managing web applications and APIs in the cloud.
-*   **Scalability and Load Balancing:** Elastic Beanstalk allows you to easily scale your application by adding or removing instances based on demand. It can also handle load balancing to distribute traffic efficiently across multiple instances.
-*   **Integration with AWS Ecosystem:** Elastic Beanstalk seamlessly integrates with other AWS services like RDS, SES, and IAM, making it easy to leverage the broader AWS ecosystem.
+### 4. Gmail SMTP (for Email Services)
+- **Notification System**: Gmail SMTP is used to send notifications to administrators about product changes. It was chosen because a dedicated domain was not available for AWS SES.
 
-### 4. AWS SES (Simple Email Service)
-
-*   **Notification System:** AWS SES is a cost-effective email sending service that enables you to send notifications to administrators about product changes.
-*   **Reliability and Scalability:** SES is a highly reliable and scalable service, ensuring that notifications are delivered promptly even with a large number of administrators.
+- **Reliability**: While Gmail SMTP is reliable for basic email needs, it is a good fit for smaller-scale deployments and testing environments.
 
 ### 5. HTTPS and TCP Protocols
+- **HTTPS**: Using HTTPS for communication between clients and the Django API ensures secure data transmission and protects sensitive information.
 
-*   **HTTPS:**  Using HTTPS for communication between clients and the Django API ensures secure data transmission and protects sensitive information.
-*   **TCP:** TCP (Transmission Control Protocol) is used for reliable communication between the Django application and the PostgreSQL database.
-
-OK, here are the non-functional requirements for your product catalog API, including details about maintainability, scalability, security, portability, and compatibility.
-
+- **TCP**: TCP (Transmission Control Protocol) is used for reliable communication between the Django application and the PostgreSQL database, ensuring stable and continuous data transmission.
+  
 ## Non-Functional Requirements
 
 ### 1. Maintainability
@@ -191,7 +213,7 @@ OK, here are the non-functional requirements for your product catalog API, inclu
 
 *   **Authorization:**
     *   **Permission Classes:** Django REST framework's permission classes will be used to define fine-grained access control to different API endpoints and resources.
-    *   **Role-Based Access Control (RBAC):**  RBAC will be implemented to assign different roles (e.g., administrator, anonymous user) and grant appropriate permissions based on those roles.
+    *   **Authentication:** Authentication with refresh_token and access_token will be implemented to differentiate roles (authenticated users will be administrators, users without account anonymous users) and grant appropriate permissions based on those roles.
 *   **Password Security:**
     *   **Password Hashing:** Passwords will be stored securely using strong hashing algorithms (e.g., bcrypt, Argon2) to prevent unauthorized access.
     *   **Salting:**  Salts will be used to further protect passwords from brute-force attacks.

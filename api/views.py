@@ -237,6 +237,7 @@ def create_admin_users(request):
     
     if serializer.is_valid():
         user = serializer.save()
+        user.set_password(password)
         user.is_staff = True
         user.save()
         return Response({
@@ -280,7 +281,12 @@ def update_admin_user(request, id):
     except User.DoesNotExist:
         return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    serializer = UserSerializer(user, data=request.data, partial=True)
+    data = request.data.copy()
+    if 'password' in data:
+        user.set_password(data['password'])
+        data.pop('password')
+
+    serializer = UserSerializer(user, data=data, partial=True)
     
     if serializer.is_valid():
         serializer.save()
