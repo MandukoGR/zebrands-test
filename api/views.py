@@ -50,53 +50,6 @@ def login(request):
     }, status=status.HTTP_200_OK)
 
 
-@swagger_auto_schema(
-    method='post',
-    request_body=UserSerializer,
-    responses={201: 'User created and JWT tokens returned', 400: 'Bad Request'}
-)
-@api_view(["POST"])
-def signup(request):
-    """
-    Handle user signup and return JWT tokens.
-    """
-    username = request.data.get("username")
-    password = request.data.get("password")
-
-    if not username or not password:
-        return Response({"detail": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-    serializer = UserSerializer(data=request.data)
-    
-    if serializer.is_valid():
-        user = serializer.save()
-        user.set_password(password)  # Ensures password is hashed
-        user.save()
-
-        refresh = RefreshToken.for_user(user)
-
-        return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            "user": serializer.data
-        }, status=status.HTTP_201_CREATED)
-    
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@swagger_auto_schema(
-    method='get',
-    responses={200: 'Authenticated', 401: 'Unauthorized'},
-    security=[{'Bearer': []}]
-)
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def test_token(request):
-    """
-    Test JWT token authentication.
-    """
-    return Response("You are authenticated {}".format(request.user.email), status=status.HTTP_200_OK)
-
 
 @swagger_auto_schema(
     method='post',

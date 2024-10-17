@@ -14,7 +14,6 @@ schema_view = get_schema_view(
 )
 urlpatterns = [
     re_path('login', views.login, name='login'),
-    re_path('signup', views.signup, name='signup'),
     re_path('catalogue', views.list_products, name='list_products'),
     re_path('product/(?P<sku>[^/]+)/$', views.product_detail, name='product_detail'),  
     re_path('updateproduct/(?P<sku>[^/]+)', views.update_product, name='update_product'), 
