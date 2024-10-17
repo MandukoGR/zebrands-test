@@ -524,3 +524,41 @@ class UpdateAdminUserTestCase(APITestCase):
         url = reverse('update_admin_user', args=[self.admin_user.id])
         response = self.client.put(url, update_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class DeleteAdminUserTestCase(APITestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(
+            username='admin',
+            password='password',
+            email='admin@example.com',
+            first_name='Admin',
+            last_name='User'
+        )
+        refresh = RefreshToken.for_user(self.admin_user)
+        self.access_token = str(refresh.access_token)
+
+    def authenticate(self):
+        """Authenticate the test client with the user's access token."""
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+        
+    def test_delete_admin_user(self):
+        """Test deleting an admin user."""
+        self.authenticate()
+        user = User.objects.create_user(username='admin1', password='adminpass1',
+                                        email='admin@test.com', first_name='Admin', last_name='User')
+        url = reverse('delete_admin_user', args=[user.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(User.objects.filter(id=user.id).exists())
+
+    def test_delete_admin_user_unauthenticated(self):
+        """Test deleting an admin user by an unauthenticated user."""
+        user = User.objects.create_user(username='admin1', password='adminpass1',
+                                        email='admin@test.com', first_name='Admin', last_name='User')
+        url = reverse('delete_admin_user', args=[user.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+                                        
+                                
