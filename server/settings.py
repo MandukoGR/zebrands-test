@@ -48,9 +48,21 @@ INSTALLED_APPS = [
     "api",
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
+    "drf_yasg",
 ]
 
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'Enter the token in the format: Bearer <token>'
+        }
+    },
+    'USE_SESSION_AUTH': False, 
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
